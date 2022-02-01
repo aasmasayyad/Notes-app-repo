@@ -1,0 +1,166 @@
+import React, { Fragment,useRef, useState} from 'react'
+// import NotesList from '../Notes/NotesList'
+import { useEffect ,useContext,useCallback} from 'react'
+import NotesContext from '../../store/notes-context'
+import NoteItem from '../Notes/NoteItem'
+// import classes from './NoteItem.module.css'
+import classes from '../Notes/NoteItem.module.css'
+// const [query, setQuery] = useState("");
+import useFetch from '../Hooks/useFetch'
+import  styles from './ShowNotes.module.css'
+
+
+ const ShowNotes=()=>{
+    let query=1
+   //  const notes=[]
+    console.log('In Show Notes')
+    const [page, setPage] = useState(1);
+    const [dbNotes, setdbNotes] = useState('')
+     const [start, setstart] = useState(-1)
+    const [more,setmore] = useState(false)
+    const loader = useRef(null);
+
+ 
+   // useEffect(() => {
+   //      console.log('in useEffect of Shownotes')
+       
+   //      notesCtx.loadCurrData()
+   //      //load current data
+       
+   // },[notesCtx.loadCurrData])
+   // },[notesCtx.loadCurrData])  //useEffect with best practice
+   // useeffect will run once only after comp renders if no dependancies mentioned[]
+   // now after putting dependancy useeffect will run only once after shownotes re-renders after state change and then will not run again as 
+   // as authCtx.loadCurrData is not re-created again due to usecallback
+
+    // data specific logic in app
+   const transformTasks=useCallback((body)=>{
+      console.log('In transformTasks')
+      setdbNotes((prev) => [...prev, ...body.Items])
+
+       if (typeof(body.LastEvaluatedKey)!=='undefined') 
+            {
+               
+              setstart(body.LastEvaluatedKey.timestamp); 
+              console.log('timestamp has some value and set it=',start)
+            setmore(true)
+            }
+            else
+            {
+              console.log('set start=0')
+              setmore(false)
+              setstart(0) 
+            }
+         
+   },[] );  //it should be re-created if some page change
+
+      // const isLoadingflag = true;     
+      const { isLoadingflag, error } = useFetch( transformTasks,page,start);   // call useFecth hook
+      console.log(error)
+      console.log(isLoadingflag)
+      console.log('notes=', dbNotes)
+      
+   
+
+//   pagination code below
+
+        const handleObserver = useCallback((entries) => {
+           console.log('IN handleObserver')
+            const target = entries[0];
+            if (target.isIntersecting) {
+               console.log('In isIntersecting ')
+               setPage((prev) => prev + 1);
+               console.log('page=',page)
+
+                  }
+          }, []);   //handleObserver
+
+          const option = {
+                           root: null,
+                        //   rootMargin: "0px",
+                           threshold: 0.5
+                        };
+
+        useEffect(() => {
+                  console.log('in useEffect of shownotes to check intersect')
+
+                  const observer = new IntersectionObserver(handleObserver, option);
+
+                  const currentObserver = observer.current;
+                 console.log('loader.current=',loader.current)
+                 if (loader.current) 
+                 {
+                 console.log('In loader.current')   
+                 observer.observe(loader.current);
+                 }
+                     return () => {    //cleanup function
+                      if (loader.current) {
+                      currentObserver.unobserve(loader.current);
+                       }
+                    };
+        }, [handleObserver,loader]);  //useEffect
+
+        let NotesList
+ 
+        if(dbNotes.length!==0)
+        {
+            console.log('notes.length',dbNotes )
+             NotesList = dbNotes.map((note) =>{
+                return ( 
+                        <div   key={note.note_id}   className= {classes.list}>
+                        <NoteItem   title={note.note_title}
+                                    //  id={index	}
+                                    id={note.note_id	}
+                                    text={note.note_text} 
+                                    user_id={note.user_id}
+                                    timestamp={note.timestamp}
+                                                    
+                                    />
+                        </div>
+                     ) } )  //map 
+        }
+       else{
+        NotesList = <li> No Notes found</li>
+       }
+            
+      //NotesList above
+      // let load  = this.state.isLoading
+     let loadingflag= <div>Loading: {`${isLoadingflag}`}, More: {`${more}`}</div> 
+                      
+    
+    return(
+    <Fragment> 
+        <h1>All Notes  {loadingflag}</h1>
+         
+        {/* {notesCtx.isLoadingflag && <p>Loading....</p>} */}
+        {/* {!notesCtx.isLoadingflag && <NotesList notes={notesCtx.notes} />}  */}
+        {!isLoadingflag &&  <ul>{NotesList}</ul>}
+        {/* {  <ul>{NotesList}</ul>} */}
+        {isLoadingflag && <p>Loading...</p>}
+        {error && <p>Error!</p>}
+        {/* {
+            // !isLoadingflag 
+            // && 
+            dbNotes.length !== 0 
+            && 
+            <div className={styles.bigblue} /> } */}
+          {
+             
+         //   isLoadingflag===false 
+      //   && 
+            more
+            &&
+            <div ref={loader} className={styles.bigblue}  /> 
+             }
+    </Fragment>       
+    )
+
+    
+   //  {!loading && more && (
+   //    <li ref={setElement} style={{ background: "transparent" }}></li>
+   //  )}
+
+    
+ }
+
+export default ShowNotes

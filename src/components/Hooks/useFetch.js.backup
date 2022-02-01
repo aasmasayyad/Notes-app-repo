@@ -1,0 +1,95 @@
+import { useState, useEffect, useCallback } from "react";
+
+function useFetch( applyData,page,start) {
+
+    console.log(' in useFetch Hook')
+
+    // const [dbNotes, setdbNotes] = useState('')
+   
+    const [error, setError] = useState(false);
+    // const [start, setstart] = useState(-1)
+    const [isLoading, setisLoading] = useState(false)
+
+   
+
+    const loadMyData =  useCallback(async()=>{
+       
+        console.log('in loadMyData in useFetch Hook')
+        console.log('Page=',page)
+
+        setisLoading(true);
+        setError(false);
+          try{
+                  console.log('timestamp value in try block=', start) 
+                    
+                    if(start===0)
+                    {
+                      console.log('in Start===0  return')
+                      return;
+                    }
+                    
+                
+                //   console.log(start)
+      
+
+                  let url= 'https://24e78sennf.execute-api.ap-south-1.amazonaws.com/Dev' 
+
+                  let path= url + '?limit=5';
+
+
+                  if (start > 0) {
+                        console.log('in start >0  for path')
+                          path += '&start=' + start;
+                          
+                    }
+                
+                    console.log(path)
+                  
+                    let response = await fetch(path,
+                    {
+                        // hostname: 'http://localhost:3000',
+                        method: 'GET',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Accept': 'application/json'
+                        }
+                      }
+                    )
+
+                    // limit to be put in url
+                    const body = await response.json()
+                    console.log(body)
+                    console.log(body.LastEvaluatedKey)
+                    // if (body.LastEvaluatedKey!==undefined)
+                    // {
+                      
+                    //   setstart(body.LastEvaluatedKey.timestamp); 
+                    //   console.log('timestamp has some value and set it=',start)
+                    // }
+                    // else
+                    // {
+                    //   console.log('set start=0')
+                     
+                    //   setstart(0) 
+                    // }
+                    applyData(body) 
+        
+             } 
+          catch(err){
+            setError(err);
+          }
+
+          setisLoading(false) 
+        },[page])   //loadMyData
+
+          useEffect(() => {
+             console.log('in useeffect of UseFetch Hook')
+          loadMyData();
+         }, [page]);
+         
+         return { isLoading, error };
+          
+      //loadMyData
+    }   
+
+     export default useFetch;

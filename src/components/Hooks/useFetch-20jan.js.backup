@@ -1,0 +1,160 @@
+   import React, { useState, useCallback,useContext } from "react";
+   import AuthContext from "../../store/auth-context";
+   //import { RequestSigner } from 'aws4';
+	import { Signer } from '@aws-amplify/core';
+	import * as urlLib from 'url';
+
+
+	
+	function useFetch( applyData, page, start ) {
+		
+		console.log(' in useFetch Hook')
+		const [error, setError] = useState(false);
+		const [isLoading, setisLoading] = useState(true)
+        const authCtx= useContext(AuthContext)
+		
+		const loadData = useCallback( async () => {
+			console.log('in loadData in useFetch Hook')
+			// console.log('Page=',page)
+
+			setisLoading(true);
+			setError(false);
+			// console.log("isLoading start", isLoading);
+			try {
+				// alert( start + " " + page)
+				if(start === 0) {
+					console.log('in Start===0  return')
+					return;
+				}
+				let url= 'https://24e78sennf.execute-api.ap-south-1.amazonaws.com/Dev' 
+				let path= url + '?limit=5';
+				if (start > 0) {
+					console.log('in start > 0  for path')
+					 path += '&start=' + start;
+				}
+			
+
+				console.log("before setting options using credentials>>>>>>>>>>>>>>>>>>")
+					
+			//////////////////////////////SET-OPTIONS FUNCTION CODE/////////////////////////////////	
+			        let API_ROOT   ='https://24e78sennf.execute-api.ap-south-1.amazonaws.com'	
+			        const host = new URL(API_ROOT);
+
+				
+				
+				
+					 let options = {
+						method: 'GET',
+						credentials: 'include',
+						mode:'cors',
+						cache: 'no-cache',
+					 };
+					 try {
+						 console.log('>>>>>>>>>before getting credentials from auth store')
+						 let savedCredsJson = authCtx.getCredentials();
+
+             
+			              console.log('savedCredsJson=',savedCredsJson)
+						 if(savedCredsJson) {
+							 let savedCreds = JSON.parse(savedCredsJson);  //converted to object
+							 let creds = {
+								 accessKeyId : savedCreds.Credentials.AccessKeyId,
+								 secretAccessKey: savedCreds.Credentials.SecretKey,
+								 sessionToken: savedCreds.Credentials.SessionToken
+							 };
+			 				
+							 console.log("creds=", creds);
+							 console.log('host=',host)
+							 const  body='';
+
+
+							 /*accept:application/json
+								app_user_id:ap-south-1:03917704-d3d8-4f45-9acb-0f2269a2849c
+								app_user_name:Aasma Sayyad
+								content-type:application/json
+								host:24e78sennf.execute-api.ap-south-1.amazonaws.com
+								x-amz-date:20220120T075247Z
+								x-amz-security- */
+							 
+							 let args = {
+								 service: 'execute-api',
+								 region: 'ap-south-1',
+								 host: host.hostname,
+								 path: path,
+								 method: 'GET',
+								 body: body,
+								 headers: {
+									'Accept': 'application/json',
+									 'Content-Type': 'application/json',
+									 'app_user_id' :savedCreds.IdentityId,
+									 'app_user_name' :savedCreds.user_name
+								 }
+							 };
+							  console.log('args=', args)
+							 
+							 // 	// //  if(method == 'GET') {
+							 // 	// // 	 delete args.body;
+							 // 	// //  }
+							  delete args.body;
+						
+							
+							console.log('args',args)
+                             
+							 let signer = new RequestSigner(args, creds);
+ 							 let signed =  signer.sign();
+
+							 console.log('signed=',signed)
+			          
+							 options.headers = signed.headers;
+							//  delete options.headers.Host;
+			 
+							// options.headers.app_user_id = savedCreds.IdentityId;
+							// options.headers.app_user_name = savedCreds.user_name;
+							//options.headers.method= 'GET';
+						//	options.credentials='include';
+
+						//	credentials: 'include'
+							console.log('options=',options)
+						 }  // if savedcreds exist
+					 } catch (error) {
+						 // do nothing
+						 console.log(error);
+					 }
+		/////////////////////////////////SET-OPTION ENDS////////////////////////////////////////////////////////		 
+		console.log("Calling API Gateway>>>>>>>>>>>>>>>>>>")
+				
+				console.log("calling fetch")
+				let response = await fetch( path, options ); //<------------------ //Working line of code
+				// let response = await fetch( path, {method: 'GET', headers: options.headers} );
+			    // let response = await fetch( path,
+				// 	{  method:'GET',
+				// 		options }  )
+				
+				console.log("response received");
+				console.log('response=',response)
+
+				// TODO: check http status code before converting response to JSON
+
+				const data  = await response.text()
+				
+				// console.log('response body=',response.body)
+				console.log('data', data)
+				// alert("body " + body.Items.length)
+				console.log("LastEvaluatedKey", data.LastEvaluatedKey)
+				console.log("Applying API data>>>>>>>>>>>>>>>>>>")
+				applyData(data)
+				setisLoading(false) 
+				// console.log("isLoading end", isLoading);
+			} catch(err) {
+				setError(err);
+				console.log(err)
+			}
+
+		}, [page] )   //loadData
+
+	
+
+		return { isLoading, error, loadData };
+	}   
+
+	export default useFetch;

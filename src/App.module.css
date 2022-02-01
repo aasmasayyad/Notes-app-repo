@@ -1,0 +1,53 @@
+.button {
+  cursor: pointer;
+  font: inherit;
+  color: white;
+  background-color: #9f5ccc;
+  border: 1px solid #9f5ccc;
+  border-radius: 5px;
+  padding:  5px 2px;
+  margin: 10px;
+  width: 80%;
+}
+
+.button:hover {
+  background-color: #873abb;
+  border-color: #873abb;
+}
+
+.capital{
+  padding: 5px;
+  margin : 10px ;
+  font-size: large;
+  font: optional;
+}
+
+.small{
+  padding: 3px;
+  margin: 10 px;
+  font-size: small;
+}
+
+.signIn {
+  margin: 2rem auto;
+  width: 95%;
+  max-width: 25rem;
+  border-radius: 8px;
+  background-color: #38015c;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  text-align: center; 
+  color: white;
+}
+
+.appHeader {
+  background-color: rgb(202, 215, 218);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* justify-content: center; */
+  /* font-size: calc(10px + 2vmin); */
+  color: white;
+}
+
