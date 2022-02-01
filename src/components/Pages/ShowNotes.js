@@ -122,9 +122,9 @@ const ShowNotes = () => {
 	
 	
 	}, [page]);	
-
+  
 	let NotesList
-	// if( dbNotes.length !== 0 ) {
+	// if( dbNotes.length !== 0 ) {nnn
 	// 	// console.log('notes.length',dbNotes )
 	// 	NotesList = dbNotes.map( (note) => {
 	// 		return ( 
